@@ -1,0 +1,133 @@
+{% extends 'layout.html' %}
+
+{% block content%}
+
+{%if user and user.member_id %}
+  
+    <div class="timeline">
+        <div id="post">
+          <form id="postForm" action="/post" method="post">
+            <div class="input-group post">
+              <textarea id="content" name="content" maxlength="100" placeholder="Write something to do ..."></textarea>
+              <input type="date" id="dueDate" name="dueDate">
+              <select id="category" name="category">
+                <option value="business">business</option>
+                <option value="exercise">exercise</option>
+                <option value="hobby">hobby</option>
+                <option value="study">study</option>
+                <option value="ect">ect</option>
+              </select>
+              <button id="postBtn" type="submit" class="btn">save</button>
+            </div>
+          </form>
+        </div>
+      <div class="todos"> 
+        {% for todo in todos %}
+          <div class="list">
+            <div class="dayList" value = "{{todo.dueDate}}">
+              <div class="todo">{{todo.content}}</div>
+              <span>{{todo.category}} </span>
+              <span>{{todo.dueDate}} </span>
+            <button type="button" value="{{todo.id}}"class="updateShow">✏️</button>
+            <button type="button" onclick="location.href='/delete/{{todo.id}}'">❌</button>
+          </div>
+            <form id = "updateForm{{todo.id}}" class="hide" action="/update?id={{todo.id}}" method="post">
+              <div class="input-group">
+                <textarea id="content" name="content" maxlength="140">{{todo.content}}</textarea>
+                <input type="date" id="dueDate" name="dueDate" value="{{todo.dueDate}}">
+                <select id="category" name="category">
+                  <option value="business">business</option>
+                  <option value="exercise">exercise</option>
+                  <option value="hobby">hobby</option>
+                  <option value="study">study</option>
+                  <option value="ect">ect</option>
+                </select>
+              <button class="updateBtn" type="submit" >수정 완료</button>
+              </div>
+            </form> 
+          </div>
+        {% endfor %}
+      </div>
+    </div> 
+    <div id="calendar">
+    <div class='date_item rap'>
+      <div class="grid date_form date_head">
+        <div>일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div>토</div>
+      </div>
+
+      {% for date in dates %}
+        <div class="todoDates hide">{{date.dueDate}}</div>  
+      {% endfor %}
+      <div class="grid date_form dateSel">
+        
+      </div>
+    </div>
+  </div>
+{%endif%}
+</div>
+{% endblock %}
+{% block script %}
+  <script>
+    // 1) Make a calendar
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth()+1 ;
+    const date = new Date().getDate();
+    const startDay = new Date(year,month-1,1).getDay();
+    const lastDate = new Date(year, month, 0).getDate();
+
+    let html = '';
+
+    document.getElementById('dueDate').value = new Date().toISOString().substring(0,10);
+
+    // 달력 공백요일 채우기
+    for (i = 0 ; i < startDay ; i ++ ){
+      html += `<div class="dateSel background"></div>`;
+    }
+
+    // 요일 채우기
+    for (i = 1 ; i <= lastDate ; i ++){
+      if (i < 10) {
+        i = "0" + String(i);
+      }
+      html+= `<button id="${year}${month}${i}" class="dateSel"  onclick="location.href='/read?date=${year}-${month}-${i}'">${i}<br><br></button>`;
+    }
+
+    document.querySelector('.dateSel').innerHTML = html;
+
+    // 2) Make todoDots
+
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min; //최댓값은 제외, 최솟값은 포함
+    }
+
+    const todoDates = document.querySelectorAll(".todoDates");
+    const emoji = ["😎","😀","😘","🤭","😛"]
+    todoDates.forEach( date => {
+      const dateBtn = document.getElementById(`${date.innerText}`);
+      const num = getRandomInt(0,4);
+      dateBtn.innerText += `${emoji[num]}`;
+    });
+
+    //3) update form show & hide
+
+    const updateShow = document.querySelectorAll('.updateShow');
+    if (updateShow){
+      updateShow.forEach( item => {
+        item.addEventListener('click' , (e) => {
+          var updateForm = document.querySelector(`#updateForm${e.target.value}`);
+          updateForm.classList.toggle('hide');
+        }
+    )})};
+
+      // 4) Write a headline
+      document.getElementsByClassName('user-name')[0].innerHTML += `<h3>{{user.nickname}}님의 ${month}월 Todo List <a id="logout" href="/auth/logout" class="btn">로그아웃</a></h3>  `;
+  </script>
+{% endblock %}
