@@ -8,6 +8,7 @@
         <div id="post">
           <form id="postForm" action="/post" method="post">
             <div class="input-group post">
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
               <textarea id="content" name="content" maxlength="100" placeholder="Write something to do ..."></textarea>
               <input type="date" id="dueDate" name="dueDate">
               <select id="category" name="category">
@@ -63,7 +64,7 @@
 
       {% for date in dates %}
         <div class="todoDates hide">{{date.dueDate}}</div>  
-      {% endfor %}
+      {% endfor %} 
       <div class="grid date_form dateSel">
         
       </div>

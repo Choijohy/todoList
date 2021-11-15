@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
+const helmet = require('helmet');
+const hpp = require('hpp');
 
 // 다른 명령어들보다 최대한 위에 -> config되어야 process.env 적용가능
 dotenv.config(); 
@@ -46,21 +48,35 @@ sequelize.sync({ force: false })
 
 passportConfig();
 
-app.use(morgan('dev'));
+if(process.env.NODE_ENV === "production"){
+  app.enable('trust proxy');
+  app.use(morgan('combined'));
+  app.use(helmet({contentSecurityPolicy :  false}));
+  app.use(hpp());
+}else{
+  app.use(morgan('dev'));
+}
+
 app.use(express.static(path.join(__dirname,'public')));
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(session({
-    resave: false,
-    saveUninitialized: false,
-    secret : process.env.COOKIE_SECRET,
-    cookie: {
-        httpOnly : true,
-        secure : false,
-    },
 
-}));
+const sessionOption = {
+  resave : false.valueOf,
+  saveUninitialized : false,
+  secret :  process.env.COOKIE_SECRET,
+  cookie : {
+    httpOnly : true,
+    secure :  false,
+  },
+};
+
+if (process.env.NODE_ENV === "production"){
+  sessionOption.proxy = true;
+  sessionOption.cookie.secure = true;
+}
+app.use(session(sessionOption));
 
 //라우터 연결전 passport 미들웨어 연결
 app.use(passport.initialize());

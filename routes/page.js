@@ -5,6 +5,8 @@ const { User, Todo, Sequelize } = require('../models');
 const sequelize = require('sequelize');
 const { Op } = require('sequelize');
 const { authenticate } = require('passport');
+const csrf = require('csurf');
+const csrfProtection = csrf({cookie:true});
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ router.use((req, res, next)=>{
     next();
 });
 
-router.get('/',  async (req, res, next) => {
+router.get('/',  csrfProtection ,async (req, res, next) => {
     try{
         if (req.isAuthenticated()){
             const dates = await Todo.findAll({
@@ -28,6 +30,7 @@ router.get('/',  async (req, res, next) => {
             res.render('main', {
                 title : 'list',
                 dates : dates,
+                csrfToken: req.csrfToken(), 
             });
         } else{
             res.render('main',{ title: 'list',});   
